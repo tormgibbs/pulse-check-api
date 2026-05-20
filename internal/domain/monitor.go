@@ -12,18 +12,18 @@ const (
 )
 
 type Monitor struct {
-	ID                string
-	TimeoutSeconds    int
-	FailureThreshold  int
-	FailureCount      int
-	RecoveryThreshold int
-	RecoveryWindow    int
-	ConsecutiveHB     int
-	AlertOnRecovery   bool
-	Status            Status
-	LastHeartbeatAt   time.Time
-	RecoveryDeadline  *time.Time
-	AlertedAt         *time.Time
-	CreatedAt         time.Time
-	UpdatedAt         time.Time
+	ID                string     `json:"id"`
+	TimeoutSeconds    int        `json:"timeout_seconds"`
+	FailureThreshold  int        `json:"failure_threshold"`
+	FailureCount      int        `json:"failure_count"`
+	RecoveryThreshold int        `json:"recovery_threshold"`
+	RecoveryWindow    int        `json:"recovery_window"`
+	ConsecutiveHB     int        `json:"consecutive_hb"`
+	AlertOnRecovery   bool       `json:"alert_on_recovery"`
+	Status            Status     `json:"status"`
+	LastHeartbeatAt   time.Time  `json:"last_heartbeat_at"`
+	RecoveryDeadline  *time.Time `json:"recovery_deadline"`
+	AlertedAt         *time.Time `json:"alerted_at"`
+	CreatedAt         time.Time  `json:"created_at"`
+	UpdatedAt         time.Time  `json:"updated_at"`
 }
