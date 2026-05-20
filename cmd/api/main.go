@@ -11,6 +11,7 @@ import (
 
 	"github.com/tormgibbs/pulse-check-api/internal/config"
 	"github.com/tormgibbs/pulse-check-api/internal/db"
+	"github.com/tormgibbs/pulse-check-api/internal/handler"
 	"github.com/tormgibbs/pulse-check-api/internal/store"
 	"github.com/tormgibbs/pulse-check-api/internal/watcher"
 )
@@ -38,9 +39,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	router := handler.NewRouter(monitorStore, w)
+
 	srv := &http.Server{
 		Addr:    ":" + cfg.Port,
-		Handler: http.NewServeMux(),
+		Handler: router,
 	}
 
 	go func() {
