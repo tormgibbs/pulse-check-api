@@ -4,7 +4,7 @@ export
 .PHONY: run migrate-up migrate-down migrate-create setup
 
 run:
-	go run ./cmd/server
+	go run ./cmd/api
 
 migrate-up:
 	migrate -path internal/db/migrations -database "$(DATABASE_URL)" up

@@ -1,3 +1,4 @@
+// internal/handler/monitor_handler.go
 package handler
 
 import (
@@ -16,11 +17,11 @@ import (
 var validID = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 
 type MonitorHandler struct {
-	store   *store.MonitorStore
-	watcher *watcher.Watcher
+	store   store.Monitor
+	watcher watcher.Monitor
 }
 
-func NewMonitorHandler(store *store.MonitorStore, watcher *watcher.Watcher) *MonitorHandler {
+func NewMonitorHandler(store store.Monitor, watcher watcher.Monitor) *MonitorHandler {
 	return &MonitorHandler{store: store, watcher: watcher}
 }
 
@@ -63,7 +64,7 @@ func (req *createRequest) validate() map[string]string {
 	return errs
 }
 
-func (h *MonitorHandler) Create(w http.ResponseWriter, r *http.Request) {
+func (h *MonitorHandler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 	var req createRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request body", "INVALID_BODY")
@@ -118,7 +119,7 @@ func (h *MonitorHandler) Create(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *MonitorHandler) Heartbeat(w http.ResponseWriter, r *http.Request) {
+func (h *MonitorHandler) HandleHeartbeat(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
 	m, err := h.store.GetByID(r.Context(), id)
@@ -173,7 +174,7 @@ func (h *MonitorHandler) Heartbeat(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "heartbeat received"})
 }
 
-func (h *MonitorHandler) Pause(w http.ResponseWriter, r *http.Request) {
+func (h *MonitorHandler) HandlePause(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
 	m, err := h.store.GetByID(r.Context(), id)
@@ -200,7 +201,7 @@ func (h *MonitorHandler) Pause(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"message": "monitor paused"})
 }
 
-func (h *MonitorHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+func (h *MonitorHandler) HandleGetByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
 	m, err := h.store.GetByID(r.Context(), id)
@@ -216,7 +217,7 @@ func (h *MonitorHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, m)
 }
 
-func (h *MonitorHandler) List(w http.ResponseWriter, r *http.Request) {
+func (h *MonitorHandler) HandleList(w http.ResponseWriter, r *http.Request) {
 	monitors, err := h.store.List(r.Context())
 	if err != nil {
 		writeInternalError(w)
@@ -233,7 +234,7 @@ func (h *MonitorHandler) List(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *MonitorHandler) Delete(w http.ResponseWriter, r *http.Request) {
+func (h *MonitorHandler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
 	_, err := h.store.GetByID(r.Context(), id)

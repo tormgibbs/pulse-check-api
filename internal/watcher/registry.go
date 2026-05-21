@@ -70,3 +70,18 @@ func (r *Registry) WaitAll() {
 		<-h.doneCh
 	}
 }
+
+func (r *Registry) StopAllAndWait() {
+	r.mu.Lock()
+	handles := make([]*MonitorHandle, 0, len(r.monitors))
+	for _, h := range r.monitors {
+		handles = append(handles, h)
+		close(h.stopCh)
+	}
+	r.monitors = make(map[string]*MonitorHandle)
+	r.mu.Unlock()
+
+	for _, h := range handles {
+		<-h.doneCh
+	}
+}

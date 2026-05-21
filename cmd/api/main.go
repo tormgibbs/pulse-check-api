@@ -67,8 +67,7 @@ func main() {
 		slog.Error("server forced to shutdown", "err", err)
 	}
 
-	registry.StopAll()
-	registry.WaitAll()
+	registry.StopAllAndWait()
 
 	slog.Info("server exited cleanly")
 }

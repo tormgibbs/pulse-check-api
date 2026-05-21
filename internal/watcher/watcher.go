@@ -10,12 +10,20 @@ import (
 	"github.com/tormgibbs/pulse-check-api/internal/store"
 )
 
+type Monitor interface {
+	Spawn(m *domain.Monitor)
+	SendHeartbeat(id string) bool
+	SendPause(id string) bool
+	SendStop(id string)
+	StartAll(ctx context.Context) error
+}
+
 type Watcher struct {
-	store    *store.MonitorStore
+	store    store.Monitor
 	registry *Registry
 }
 
-func NewWatcher(store *store.MonitorStore, registry *Registry) *Watcher {
+func NewWatcher(store store.Monitor, registry *Registry) *Watcher {
 	return &Watcher{store: store, registry: registry}
 }
 
@@ -24,7 +32,6 @@ func (w *Watcher) Spawn(m *domain.Monitor) {
 	w.registry.Register(m.ID, handle)
 	go w.run(m, handle)
 }
-
 
 func (w *Watcher) run(m *domain.Monitor, handle *MonitorHandle) {
 	defer func() {
