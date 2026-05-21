@@ -1,7 +1,7 @@
 include .env
 export
 
-.PHONY: run migrate-up migrate-down migrate-create setup
+.PHONY: run migrate-up migrate-down migrate-create setup docker-up docker-down docker-migrate
 
 run:
 	go run ./cmd/api
@@ -18,3 +18,12 @@ migrate-create:
 setup:
 	cp .env.example .env
 	direnv allow .
+
+docker-up:
+	docker compose up -d
+
+docker-down:
+	docker compose down
+
+docker-migrate:
+	migrate -path internal/db/migrations -database "postgres://pulse:pulse@localhost:5432/pulsecheck?sslmode=disable" up

@@ -1,0 +1,38 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgres://pulse:pulse@db:5432/pulsecheck?sslmode=disable
+      SERVER_PORT: "8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - pulse-net
+    restart: unless-stopped
+
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: pulse
+      POSTGRES_PASSWORD: pulse
+      POSTGRES_DB: pulsecheck
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - pulse-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pulse -d pulsecheck"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+
+networks:
+  pulse-net:
+    driver: bridge
