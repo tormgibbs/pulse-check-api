@@ -21,10 +21,11 @@ type Monitor interface {
 type Watcher struct {
 	store    store.Monitor
 	registry *Registry
+	clock    Clock
 }
 
 func NewWatcher(store store.Monitor, registry *Registry) *Watcher {
-	return &Watcher{store: store, registry: registry}
+	return &Watcher{store: store, registry: registry, clock: systemClock{}}
 }
 
 func (w *Watcher) Spawn(m *domain.Monitor) {
@@ -45,12 +46,12 @@ func (w *Watcher) run(m *domain.Monitor, handle *MonitorHandle) {
 		return
 	}
 
-	timer := time.NewTimer(remaining)
+	timer := w.clock.NewTimer(remaining)
 	defer timer.Stop()
 
 	for {
 		select {
-		case <-timer.C:
+		case <-timer.C():
 			m.FailureCount++
 			if m.FailureCount < m.FailureThreshold {
 				if err := w.store.UpdateFailureCount(context.Background(), m.ID, m.FailureCount); err != nil {
@@ -67,11 +68,11 @@ func (w *Watcher) run(m *domain.Monitor, handle *MonitorHandle) {
 		case <-handle.resetCh:
 			if !timer.Stop() {
 				select {
-				case <-timer.C:
+				case <-timer.C():
 				default:
 				}
 			}
-			now := time.Now()
+			now := w.clock.Now()
 			if m.Status == domain.StatusRecovering {
 				m.ConsecutiveHB++
 				if m.ConsecutiveHB >= m.RecoveryThreshold {
@@ -131,7 +132,7 @@ func (w *Watcher) remainingTime(m *domain.Monitor) time.Duration {
 }
 
 func (w *Watcher) handleExpiry(m *domain.Monitor) {
-	now := time.Now()
+	now := w.clock.Now()
 	maxRetries := 3
 	backoff := time.Second
 
