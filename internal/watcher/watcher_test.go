@@ -72,11 +72,13 @@ func activeMonitor(id string) *domain.Monitor {
 
 func TestWatcher_TimerFires_BelowThreshold_IncrementsFailureCount(t *testing.T) {
 	clock := newFakeClock(time.Now())
-	failureCountUpdated := 0
+	done := make(chan struct{})
 
 	store := &mockStore{
 		updateFailureCountFn: func(ctx context.Context, id string, count int) error {
-			failureCountUpdated = count
+			if count == 1 {
+				close(done)
+			}
 			return nil
 		},
 	}
@@ -85,15 +87,17 @@ func TestWatcher_TimerFires_BelowThreshold_IncrementsFailureCount(t *testing.T) 
 	m := activeMonitor("device-01")
 	m.FailureThreshold = 2
 
-	w.Spawn(m)
+	handle := NewMonitorHandle()
+	w.registry.Register(m.ID, handle)
+	go w.run(m, handle)
 
 	timer := clock.WaitTimer(t)
 	timer.Fire(clock.Now())
 
-	time.Sleep(50 * time.Millisecond)
-
-	if failureCountUpdated != 1 {
-		t.Errorf("expected failure_count 1, got %d", failureCountUpdated)
+	select {
+	case <-done:
+	case <-time.After(time.Second):
+		t.Error("timed out waiting for failure count update")
 	}
 }
 
@@ -128,25 +132,30 @@ func TestWatcher_TimerFires_AtThreshold_TransitionsToDown(t *testing.T) {
 
 func TestWatcher_Heartbeat_ActiveMonitor_ResetsTimer(t *testing.T) {
 	clock := newFakeClock(time.Now())
-	heartbeatCalled := false
+	done := make(chan struct{})
 
 	store := &mockStore{
 		updateHeartbeatFn: func(ctx context.Context, id string, now time.Time) error {
-			heartbeatCalled = true
+			close(done)
 			return nil
 		},
 	}
 
 	w := newTestWatcher(store, clock)
 	m := activeMonitor("device-03")
-	w.Spawn(m)
 
+	handle := NewMonitorHandle()
+	w.registry.Register(m.ID, handle)
+	go w.run(m, handle)
+
+
+	clock.WaitTimer(t)
 	w.SendHeartbeat(m.ID)
 
-	time.Sleep(50 * time.Millisecond)
-
-	if !heartbeatCalled {
-		t.Error("expected UpdateHeartbeat to be called on heartbeat signal")
+	select {
+	case <-done:
+	case <-time.After(time.Second):
+		t.Error("timed out waiting for heartbeat update")
 	}
 }
 
