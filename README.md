@@ -14,6 +14,14 @@ A Dead Man's Switch API for CritMon Servers Inc. Devices register a monitor with
 
 ![State Flowchart](docs/state-flowchart.png)
 
+## How It Works
+
+Each monitor is a countdown timer backed by a Postgres row. When a device registers, the server persists the monitor and spawns a goroutine that counts down from the configured timeout. If a heartbeat arrives before the timer expires, the goroutine resets the countdown and updates `last_heartbeat_at` in the database. If the timer fires without a heartbeat, the monitor transitions to `down` and an alert is logged.
+
+On server restart, all active and recovering monitors are rebuilt from the database. The remaining time is computed from `last_heartbeat_at` rather than stored explicitly, so no countdown state is lost across restarts. Monitors whose deadline already passed during downtime are transitioned to `down` synchronously before the server accepts any connections.
+
+Paused and down monitors have no running goroutine. A heartbeat on a paused monitor spawns a new goroutine and resumes the countdown. A heartbeat on a down monitor starts the recovery process.
+
 ---
 
 ## Stack
