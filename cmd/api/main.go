@@ -30,6 +30,12 @@ func main() {
 	}
 	defer pool.Close()
 
+	if err := db.RunMigrations(cfg.DatabaseURL, "internal/db/migrations"); err != nil {
+		slog.Error("failed to run migrations", "err", err)
+		os.Exit(1)
+	}
+	slog.Info("migrations applied successfully")
+
 	monitorStore := store.NewMonitorStore(pool)
 	registry := watcher.NewRegistry()
 	w := watcher.NewWatcher(monitorStore, registry)
