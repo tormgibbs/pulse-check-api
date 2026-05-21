@@ -16,6 +16,7 @@ func NewRouter(store store.Monitor, watcher watcher.Monitor, pool *pgxpool.Pool)
 	mh := NewMonitorHandler(store, watcher)
 	hh := NewHealthHandler(pool)
 
+	r.Get("/", HomeHandler)
 	r.Get("/health", hh.HandleHealthCheck)
 	r.Post("/monitors", mh.HandleCreate)
 	r.Post("/monitors/{id}/heartbeat", mh.HandleHeartbeat)
