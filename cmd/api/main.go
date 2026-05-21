@@ -45,7 +45,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	router := handler.NewRouter(monitorStore, w)
+	router := handler.NewRouter(monitorStore, w, pool)
 
 	srv := &http.Server{
 		Addr:    ":" + cfg.Port,

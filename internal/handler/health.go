@@ -1,14 +1,23 @@
 package handler
 
 import (
-	"encoding/json"
 	"net/http"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func Health(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{
-		"status": "ok",
-	})
+type HealthHandler struct {
+	pool *pgxpool.Pool
+}
+
+func NewHealthHandler(pool *pgxpool.Pool) *HealthHandler {
+	return &HealthHandler{pool: pool}
+}
+
+func (h *HealthHandler) HandleHealthCheck(w http.ResponseWriter, r *http.Request) {
+	if err := h.pool.Ping(r.Context()); err != nil {
+		writeError(w, http.StatusServiceUnavailable, "database unreachable", "DB_UNREACHABLE")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
