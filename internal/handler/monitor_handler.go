@@ -1,4 +1,3 @@
-// internal/handler/monitor_handler.go
 package handler
 
 import (

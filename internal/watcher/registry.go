@@ -1,4 +1,3 @@
-// internal/watcher/registry.go
 package watcher
 
 import "sync"
@@ -47,28 +46,6 @@ func (r *Registry) Remove(id string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	delete(r.monitors, id)
-}
-
-func (r *Registry) StopAll() {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	for _, handle := range r.monitors {
-		close(handle.stopCh)
-	}
-	r.monitors = make(map[string]*MonitorHandle)
-}
-
-func (r *Registry) WaitAll() {
-	r.mu.RLock()
-	handles := make([]*MonitorHandle, 0, len(r.monitors))
-	for _, h := range r.monitors {
-		handles = append(handles, h)
-	}
-	r.mu.RUnlock()
-
-	for _, h := range handles {
-		<-h.doneCh
-	}
 }
 
 func (r *Registry) StopAllAndWait() {

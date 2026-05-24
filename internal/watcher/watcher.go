@@ -1,4 +1,3 @@
-// internal/watcher/watcher.go
 package watcher
 
 import (
