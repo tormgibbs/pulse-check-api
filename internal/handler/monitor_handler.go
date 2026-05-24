@@ -168,6 +168,10 @@ func (h *MonitorHandler) HandleHeartbeat(w http.ResponseWriter, r *http.Request)
 		h.watcher.Spawn(m)
 
 	case domain.StatusRecovering:
+		if err := h.store.UpdateHeartbeat(r.Context(), id, now); err != nil {
+			writeInternalError(w)
+			return
+		}
 		h.watcher.SendHeartbeat(id)
 	}
 

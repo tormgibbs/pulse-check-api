@@ -176,6 +176,47 @@ Response `200 OK`:
 }
 ```
 
+### List Monitors
+
+Response `200 OK`:
+
+```
+GET /monitors
+```
+
+```json
+{
+  "monitors": [
+    {
+      "id": "device-123",
+      "timeout_seconds": 60,
+      "failure_threshold": 2,
+      "failure_count": 0,
+      "recovery_threshold": 3,
+      "recovery_window": 180,
+      "consecutive_hb": 0,
+      "alert_on_recovery": true,
+      "status": "active",
+      "last_heartbeat_at": "2026-05-21T10:53:28.844277Z",
+      "recovery_deadline": null,
+      "alerted_at": null,
+      "created_at": "2026-05-21T10:53:28.842019Z",
+      "updated_at": "2026-05-21T10:53:28.843640Z"
+    }
+  ],
+  "total": 1
+}
+```
+
+### Delete Monitor
+
+```
+DELETE /monitors/:id
+```
+
+Response `204 No Content`; no response body.
+
+
 ### Error Responses
 
 All errors use this shape:
